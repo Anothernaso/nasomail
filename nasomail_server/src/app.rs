@@ -1,11 +1,13 @@
 use sqlx::sqlite::SqlitePool;
 use std::sync::Arc;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use uuid::Uuid;
 
 use crate::config::Config;
 
 pub type AppContextGuardPtr = Arc<AppContextGuard>;
 
+#[derive(Debug)]
 pub struct AppContextGuard {
     ctx: RwLock<AppContext>,
 }
@@ -22,9 +24,12 @@ impl AppContextGuard {
     }
 }
 
+#[derive(Debug)]
 pub struct AppContext {
     pool: RwLock<SqlitePool>,
     cfg: RwLock<Config>,
+
+    test_code: RwLock<String>,
 }
 
 impl AppContext {
@@ -32,6 +37,8 @@ impl AppContext {
         AppContextGuard::new(Self {
             pool: RwLock::new(pool),
             cfg: RwLock::new(cfg),
+
+            test_code: RwLock::new(Uuid::new_v4().to_string()),
         })
     }
 
@@ -47,5 +54,9 @@ impl AppContext {
     }
     pub async fn cfg_mut(&self) -> RwLockWriteGuard<'_, Config> {
         self.cfg.write().await
+    }
+
+    pub async fn test_code(&self) -> RwLockReadGuard<'_, String> {
+        self.test_code.read().await
     }
 }

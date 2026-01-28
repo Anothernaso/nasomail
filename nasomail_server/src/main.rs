@@ -6,13 +6,15 @@ use sqlx::sqlite::SqlitePoolOptions;
 use tokio::{
     fs::{self, File},
     io::AsyncWriteExt,
+    time::{self, Duration},
 };
 
 pub mod app;
 pub mod config;
+pub mod ctest;
 pub mod meta;
 
-use crate::{app::*, config::Config};
+use crate::{app::*, config::Config, ctest::RouterCtest};
 
 #[tokio::main]
 #[instrument]
@@ -21,7 +23,7 @@ async fn main() {
 
     let span = info_span!("startup");
 
-    let (listener, router) = async {
+    let (listener, router, app) = async {
         let span = info_span!("config");
         let cfg = async {
             let cfg_path = Path::new(meta::CONFIG_PATH);
@@ -118,7 +120,7 @@ async fn main() {
         let app_ctx = app.ctx().await;
         let cfg = app_ctx.cfg().await;
 
-        let router = Router::new().with_state(app.clone());
+        let router = Router::new().with_ctest().with_state(app.clone());
 
         let listener = tokio::net::TcpListener::bind(&cfg.addr)
             .await
@@ -126,12 +128,20 @@ async fn main() {
 
         info!(addr = %cfg.addr, "listening");
 
-        (listener, router)
+        (listener, router, app.clone())
     }
     .instrument(span)
     .await;
 
-    axum::serve(listener, router)
-        .await
-        .expect("failed to start server");
+    let handle = tokio::spawn(async move {
+        axum::serve(listener, router)
+            .await
+            .expect("failed to start server");
+    });
+
+    time::sleep(Duration::from_secs(1)).await;
+
+    ctest::connection_test(app).await;
+
+    handle.await.expect("failed to await server handle");
 }

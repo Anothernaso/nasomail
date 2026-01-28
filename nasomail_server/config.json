@@ -1,0 +1,5 @@
+{
+  "db_path": "database.sqlite",
+  "addr": "0.0.0.0:8080",
+  "pub_addr": "mail.example.com:8080"
+}

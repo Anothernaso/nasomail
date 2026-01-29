@@ -25,7 +25,7 @@ impl RouterCtest for Router<AppContextGuardPtr> {
 pub async fn connection_test(app: AppContextGuardPtr) {
     let ctx = app.ctx().await;
     let cfg = ctx.cfg().await;
-    let pub_addr = &cfg.pub_addr;
+    let pub_addr = cfg.pub_addr().await;
 
     info!(pub_addr = %pub_addr, "performing connection test");
 

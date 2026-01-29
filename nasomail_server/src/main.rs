@@ -14,7 +14,11 @@ pub mod config;
 pub mod ctest;
 pub mod meta;
 
-use crate::{app::*, config::Config, ctest::RouterCtest};
+use crate::{
+    app::*,
+    config::{Config, ConfigSerializable},
+    ctest::RouterCtest,
+};
 
 #[tokio::main]
 #[instrument]
@@ -36,7 +40,10 @@ async fn main() {
                         .await
                         .expect("failed to read config file");
 
-                    serde_json::from_str(&cfg_json).expect("failed to deserialize config file")
+                    Config::from(
+                        serde_json::from_str::<ConfigSerializable>(&cfg_json)
+                            .expect("failed to deserialize config file"),
+                    )
                 }
                 Ok(false) => {
                     info!(cfg_path = ?cfg_path, "creating config");
@@ -56,7 +63,7 @@ async fn main() {
                             .expect("failed to create config parent directories");
                     }
 
-                    let cfg_json = serde_json::to_string_pretty(&cfg)
+                    let cfg_json = serde_json::to_string_pretty(&cfg.to_ser().await)
                         .expect("failed to serialize config file");
 
                     let mut file = File::create(cfg_path)
@@ -77,7 +84,7 @@ async fn main() {
 
         let span = info_span!("database");
         let db = async {
-            let db_path = PathBuf::from(&cfg.db_path);
+            let db_path = PathBuf::from(cfg.db_path().await.clone());
             match fs::try_exists(&db_path).await {
                 Ok(false) => {
                     info!(db_path = ?db_path, "creating database");
@@ -103,7 +110,7 @@ async fn main() {
                 _ => {}
             };
 
-            let url = format!("sqlite://{}", cfg.db_path);
+            let url = format!("sqlite://{}", cfg.db_path().await);
             info!(url = %url, "connecting to database");
 
             SqlitePoolOptions::new()
@@ -122,11 +129,11 @@ async fn main() {
 
         let router = Router::new().with_ctest().with_state(app.clone());
 
-        let listener = tokio::net::TcpListener::bind(&cfg.addr)
+        let listener = tokio::net::TcpListener::bind(cfg.addr().await.clone())
             .await
             .expect("failed to bind TCP listener");
 
-        info!(addr = %cfg.addr, "listening");
+        info!(addr = %cfg.addr().await, "listening");
 
         (listener, router, app.clone())
     }

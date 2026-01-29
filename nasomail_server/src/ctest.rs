@@ -5,6 +5,7 @@ use reqwest::StatusCode;
 use tracing::{info, instrument, warn};
 
 use crate::app::AppContextGuardPtr;
+use nasomail_shared::api;
 
 pub trait RouterCtest {
     fn with_ctest(self) -> Self;
@@ -14,7 +15,7 @@ impl RouterCtest for Router<AppContextGuardPtr> {
     #[instrument]
     fn with_ctest(self) -> Self {
         self.route(
-            "/ctest/test_code",
+            api::TEST_CODE,
             get(|State(app): State<AppContextGuardPtr>| async move {
                 app.ctx().await.test_code().await.clone()
             }),
@@ -30,7 +31,7 @@ pub async fn connection_test(app: AppContextGuardPtr) {
 
     info!(pub_addr = %pub_addr, "performing");
 
-    let response = reqwest::get(format!("http://{pub_addr}/ctest/test_code")).await;
+    let response = reqwest::get(format!("http://{}{}", pub_addr, api::TEST_CODE)).await;
     if let Err(e) = response {
         warn!(err = ?e, "failed: could not reach server");
         return;

@@ -1,3 +1,7 @@
 [workspace]
+members = [
+    "nasomail_server",
+    "nasomail_client",
+    "nasomail_shared",
+]
 resolver = "3"
-members = ["nasomail_server"]

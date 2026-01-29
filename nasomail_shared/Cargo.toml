@@ -1,0 +1,7 @@
+[package]
+name = "nasomail_shared"
+version = "0.1.0"
+authors = ["Anatnaso"]
+edition = "2024"
+
+[dependencies]

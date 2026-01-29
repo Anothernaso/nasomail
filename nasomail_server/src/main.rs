@@ -113,11 +113,43 @@ async fn main() {
             let url = format!("sqlite://{}", cfg.db_path().await);
             info!(url = %url, "connecting to database");
 
-            SqlitePoolOptions::new()
+            let pool = SqlitePoolOptions::new()
                 .max_connections(5)
                 .connect(&url)
                 .await
-                .expect("failed to connect to database")
+                .expect("failed to connect to database");
+
+            let schema_path = PathBuf::from(cfg.schema_path().await.clone());
+
+            match fs::try_exists(&schema_path).await {
+                Ok(true) => {
+                    let schema = fs::read_to_string(schema_path)
+                        .await
+                        .expect("failed to read schema file");
+
+                    for stmt in schema.split(';').filter(|s| !s.trim().is_empty()) {
+                        sqlx::query(stmt)
+                            .execute(&pool)
+                            .await
+                            .expect("failed to execute schema statement");
+                    }
+                }
+
+                Ok(false) => {
+                    panic!(
+                        "schema file does not exist: {}",
+                        schema_path
+                            .to_str()
+                            .expect("failed to convert schema path to string")
+                    );
+                }
+
+                Err(e) => {
+                    panic!("failed to check if schema file exists: {}", e)
+                }
+            }
+
+            pool
         }
         .instrument(span)
         .await;

@@ -39,7 +39,7 @@ pub async fn connection_test(app: AppContextGuardPtr) {
 
     let status = response.status();
     if status != StatusCode::OK {
-        warn!(status = %status, expected = %StatusCode::OK, "failed: wrong status");
+        warn!(status = %status, expected = %StatusCode::OK, "failed: status mismatch");
         return;
     }
 

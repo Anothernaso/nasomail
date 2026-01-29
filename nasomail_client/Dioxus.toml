@@ -1,9 +1,15 @@
 [application]
 
+[bundle]
+identifier = "net.anatnaso.nasomail"
+publisher = "Anatnaso"
+copyright = "Copyright (c) 2026 Anatnaso"
+category = "SocialNetworking"
+
 [web.app]
 
 # HTML title tag content
-title = "nasomail_client"
+title = "NasoMail"
 
 # include `assets` in web platform
 [web.resource]

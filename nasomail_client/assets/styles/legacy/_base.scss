@@ -1,0 +1,67 @@
+// _base.scss
+@use "variables" as var;
+
+body {
+    background-color: var.$color-bg;
+    color: var.$color-text;
+    font-family: var.$font-base;
+    font-size: var.$font-size-base;
+    margin: var.$spacing-base;
+    line-height: 1.6;
+}
+
+a {
+    color: var.$color-primary;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+p {
+    margin-bottom: var.$spacing-base;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-bottom: var.$spacing-small;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+h1 {
+    font-size: 2.5rem;
+}
+h2 {
+    font-size: 2rem;
+}
+h3 {
+    font-size: 1.75rem;
+}
+h4 {
+    font-size: 1.5rem;
+}
+h5 {
+    font-size: 1.25rem;
+}
+h6 {
+    font-size: 1rem;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background-color: var.$color-border;
+    margin: var.$spacing-large 0;
+}
+
+ul,
+ol {
+    margin-left: var.$spacing-large;
+    margin-bottom: var.$spacing-base;
+}

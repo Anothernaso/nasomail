@@ -1,0 +1,10 @@
+// _images.scss
+@use "variables" as var;
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin-bottom: var.$spacing-base;
+    border-radius: var.$border-radius;
+}

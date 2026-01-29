@@ -1,0 +1,32 @@
+// _forms.scss
+@use "variables" as var;
+
+input,
+select,
+textarea,
+button {
+    font-family: var.$font-base;
+    font-size: var.$font-size-base;
+    color: var.$color-text;
+    background-color: var.$color-bg;
+    border: 1px solid var.$color-border;
+    border-radius: var.$border-radius;
+    padding: 0.5em 1em;
+    margin-bottom: var.$spacing-base;
+
+    &:focus {
+        outline: none;
+        border-color: var.$color-primary;
+        box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.3);
+    }
+}
+
+button {
+    background-color: var.$color-primary;
+    color: var.$color-text;
+    cursor: pointer;
+
+    &:hover {
+        background-color: darken(var.$color-primary, 10%);
+    }
+}

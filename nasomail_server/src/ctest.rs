@@ -27,18 +27,24 @@ pub async fn connection_test(app: AppContextGuardPtr) {
     let cfg = ctx.cfg().await;
     let pub_addr = cfg.pub_addr().await;
 
-    info!(pub_addr = %pub_addr, "performing connection test");
+    info!(pub_addr = %pub_addr, "performing");
 
     let response = reqwest::get(format!("http://{pub_addr}/ctest/test_code")).await;
     if let Err(e) = response {
-        warn!(err = ?e, "connection test failed: failed to reach server");
+        warn!(err = ?e, "failed: could not reach server");
         return;
     }
     let response = response.unwrap();
 
+    let status = response.status();
+    if status != 200 {
+        warn!(status = %status, expected = 200, "failed: wrong status");
+        return;
+    }
+
     let text = response.text().await;
     if let Err(e) = &text {
-        warn!(err = ?e, "connection test failed: failed to read body");
+        warn!(err = ?e, "failed: could not read body");
     }
     let test_code = text.unwrap();
     let test_code = test_code.trim();
@@ -49,14 +55,10 @@ pub async fn connection_test(app: AppContextGuardPtr) {
         warn!(
             test_code = test_code,
             expected = *expected,
-            "connection test failed: test code mismatch"
+            "failed: test code mismatch"
         );
         return;
     }
 
-    info!(
-        test_code = test_code,
-        expected = *expected,
-        "connection test succeeded"
-    );
+    info!(test_code = test_code, expected = *expected, "succeeded");
 }

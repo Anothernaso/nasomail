@@ -123,6 +123,8 @@ async fn main() {
 
             match fs::try_exists(&schema_path).await {
                 Ok(true) => {
+                    info!(schema_path = ?schema_path, "executing schema");
+
                     let schema = fs::read_to_string(schema_path)
                         .await
                         .expect("failed to read schema file");

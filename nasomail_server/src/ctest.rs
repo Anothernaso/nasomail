@@ -1,6 +1,7 @@
 use axum::Router;
 use axum::extract::State;
 use axum::routing::get;
+use reqwest::StatusCode;
 use tracing::{info, instrument, warn};
 
 use crate::app::AppContextGuardPtr;
@@ -37,8 +38,8 @@ pub async fn connection_test(app: AppContextGuardPtr) {
     let response = response.unwrap();
 
     let status = response.status();
-    if status != 200 {
-        warn!(status = %status, expected = 200, "failed: wrong status");
+    if status != StatusCode::OK {
+        warn!(status = %status, expected = %StatusCode::OK, "failed: wrong status");
         return;
     }
 

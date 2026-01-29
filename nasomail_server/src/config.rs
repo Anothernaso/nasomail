@@ -21,7 +21,7 @@ impl Config {
         ConfigSerializable {
             db_path: self.db_path.read().await.clone(),
             addr: self.addr.read().await.clone(),
-            pub_addr: self.addr.read().await.clone(),
+            pub_addr: self.pub_addr.read().await.clone(),
         }
     }
 

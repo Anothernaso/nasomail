@@ -3020,6 +3020,8 @@ version = "0.1.0"
 dependencies = [
  "dioxus",
  "nasomail_shared",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

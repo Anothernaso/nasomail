@@ -1,8 +1,9 @@
 use dioxus::prelude::*;
 
-use crate::{components::auth::Auth, state::AppState};
+use crate::{components::auth::Auth, data::AppData, state::AppState};
 
 pub mod components;
+pub mod data;
 pub mod state;
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
@@ -15,6 +16,7 @@ fn main() {
 #[component]
 fn App() -> Element {
     let state = use_context_provider(|| AppState::Auth);
+    use_context_provider(|| AppData::default());
 
     rsx! {
         document::Link { rel: "icon", href: FAVICON }

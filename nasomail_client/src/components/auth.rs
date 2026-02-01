@@ -1,4 +1,13 @@
 use dioxus::prelude::*;
+use std::sync::Arc;
+use std::sync::RwLock;
+
+pub type AuthContextPtr = Arc<RwLock<AuthContext>>;
+
+#[derive(Clone)]
+pub struct AuthContext {
+    pub state: AuthState,
+}
 
 #[derive(Clone)]
 pub enum AuthState {
@@ -9,17 +18,39 @@ pub enum AuthState {
 
 #[component]
 pub fn Auth() -> Element {
-    let state = use_context_provider(|| AuthState::Home);
+    let ctx = use_context_provider(|| {
+        Arc::new(RwLock::new(AuthContext {
+            state: AuthState::Home,
+        }))
+    });
+
+    let login_ctx = ctx.clone();
+    let login = move |_| {
+        let mut ctx = login_ctx.write().unwrap();
+        ctx.state = AuthState::Login;
+    };
+
+    let register_ctx = ctx.clone();
+    let register = move |_| {
+        let mut ctx = register_ctx.write().unwrap();
+        ctx.state = AuthState::Register;
+    };
 
     rsx! {
-        if matches!(state, AuthState::Home) {
+        if matches!(ctx.read().unwrap().state, AuthState::Home) {
             h2 { "Authenticate" }
-            button { "Log In" }
+            button {
+                onclick: login,
+                "Log In"
+            }
             br {}
-            button { "Register" }
+            button {
+                onclick: register,
+                "Register"
+            }
         }
 
-        if matches!(state, AuthState::Login) {
+        if matches!(ctx.read().unwrap().state, AuthState::Login) {
             Login {}
         }
     }

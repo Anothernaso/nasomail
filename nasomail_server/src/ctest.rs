@@ -4,19 +4,19 @@ use axum::routing::get;
 use reqwest::StatusCode;
 use tracing::{info, instrument, warn};
 
-use crate::app::AppContextGuardPtr;
+use crate::app::AppContextGuard;
 use nasomail_shared::api;
 
 pub trait RouterCtest {
     fn with_ctest(self) -> Self;
 }
 
-impl RouterCtest for Router<AppContextGuardPtr> {
+impl RouterCtest for Router<AppContextGuard> {
     #[instrument]
     fn with_ctest(self) -> Self {
         self.route(
             api::TEST_CODE,
-            get(|State(app): State<AppContextGuardPtr>| async move {
+            get(|State(app): State<AppContextGuard>| async move {
                 app.ctx().await.test_code().await.clone()
             }),
         )
@@ -24,7 +24,7 @@ impl RouterCtest for Router<AppContextGuardPtr> {
 }
 
 #[instrument(skip(app))]
-pub async fn connection_test(app: AppContextGuardPtr) {
+pub async fn connection_test(app: AppContextGuard) {
     let ctx = app.ctx().await;
     let cfg = ctx.cfg().await;
     let pub_addr = cfg.pub_addr().await;

@@ -726,6 +726,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ctxguard"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "076bb095b50c8360942aeb100d98f0428fcbca741ee7938c58312f3feabd5940"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
 name = "darling"
 version = "0.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3030,6 +3039,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
+ "ctxguard",
  "nasomail_shared",
  "reqwest 0.13.1",
  "serde",

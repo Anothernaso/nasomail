@@ -158,8 +158,8 @@ async fn main() {
 
         let app = AppContext::new(db, cfg);
 
-        let app_ctx = app.ctx().await;
-        let cfg = app_ctx.cfg().await;
+        let ctx = app.ctx().await;
+        let cfg = ctx.cfg().await;
 
         let router = Router::new().with_ctest().with_state(app.clone());
 

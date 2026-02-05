@@ -1,30 +1,12 @@
+use ctxguard::tokio::ContextGuard;
 use sqlx::sqlite::SqlitePool;
-use std::sync::Arc;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use uuid::Uuid;
 
 use crate::config::Config;
 
-pub type AppContextGuardPtr = Arc<AppContextGuard>;
+pub type AppContextGuard = ContextGuard<AppContext>;
 
-#[derive(Debug)]
-pub struct AppContextGuard {
-    ctx: RwLock<AppContext>,
-}
-
-impl AppContextGuard {
-    pub fn new(ctx: AppContext) -> AppContextGuardPtr {
-        Arc::new(Self {
-            ctx: RwLock::new(ctx),
-        })
-    }
-
-    pub async fn ctx(&self) -> RwLockReadGuard<'_, AppContext> {
-        self.ctx.read().await
-    }
-}
-
-#[derive(Debug)]
 pub struct AppContext {
     pool: RwLock<SqlitePool>,
     cfg: RwLock<Config>,
@@ -33,8 +15,8 @@ pub struct AppContext {
 }
 
 impl AppContext {
-    pub fn new(pool: SqlitePool, cfg: Config) -> AppContextGuardPtr {
-        AppContextGuard::new(Self {
+    pub fn new(pool: SqlitePool, cfg: Config) -> AppContextGuard {
+        ContextGuard::new(Self {
             pool: RwLock::new(pool),
             cfg: RwLock::new(cfg),
 

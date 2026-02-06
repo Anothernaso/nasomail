@@ -1,0 +1,27 @@
+use clap::{Parser, Subcommand};
+
+/// A simple client application for communicating through a NasoMail server.
+#[derive(Parser)]
+pub struct Cli {
+    /// The command to run
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+pub enum Commands {
+    /// Authenticate as a user account specified
+    /// by the `--name` flag.
+    LogIn {
+        /// The name of the user account to log into
+        #[arg(short, long)]
+        name: String,
+
+        /// The passphrase of the user account to log into
+        #[arg(short, long)]
+        passphrase: String,
+    },
+
+    /// Log out of the current user account
+    LogOut,
+}

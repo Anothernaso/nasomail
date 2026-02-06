@@ -1,13 +1,13 @@
 [package]
 name = "nasomail_server"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Anatnaso"]
 edition = "2024"
 
 [dependencies]
 nasomail_shared = { path = "../nasomail_shared" }
-ctxguard = { version = "0.1.1", features = ["tokio-sync"] }
-anyhow = "1.0.100"
+ctxguard = { version = "0.1.2", features = ["tokio-sync"] }
+anyhow = "1.0.101"
 axum = { version = "0.8.8", features = ["http2"] }
 reqwest = "0.13.1"
 serde = { version = "1.0.228", features = ["derive"] }

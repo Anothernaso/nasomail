@@ -2,6 +2,7 @@ use clap::Parser;
 use cli::Cli;
 use tokio::task;
 
+pub mod auth;
 pub mod cli;
 pub mod meta;
 

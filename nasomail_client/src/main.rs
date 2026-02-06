@@ -1,9 +1,15 @@
 use clap::Parser;
 use cli::Cli;
+use tokio::task;
 
 pub mod cli;
 pub mod meta;
 
-fn main() {
-    Cli::parse();
+#[tokio::main]
+async fn main() {
+    task::spawn_blocking(|| {
+        Cli::parse();
+    })
+    .await
+    .expect("cli task failed");
 }

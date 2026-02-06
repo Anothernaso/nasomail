@@ -15,7 +15,7 @@ impl RouterCtest for Router<AppContextGuard> {
     #[instrument]
     fn with_ctest(self) -> Self {
         self.route(
-            api::TEST_CODE,
+            api::CTEST,
             get(|State(app): State<AppContextGuard>| async move {
                 app.ctx().await.test_code().await.clone()
             }),
@@ -23,6 +23,14 @@ impl RouterCtest for Router<AppContextGuard> {
     }
 }
 
+/// Performs a connection test to make sure that
+/// the public address set in configuration is
+/// accessible from the internet.
+///
+/// # Notes
+///
+/// This requires that `RouterCtest::with_ctest` has been called
+/// on a `Router` that is currently listening.
 #[instrument(skip(app))]
 pub async fn connection_test(app: AppContextGuard) {
     let ctx = app.ctx().await;
@@ -31,7 +39,7 @@ pub async fn connection_test(app: AppContextGuard) {
 
     info!(pub_addr = %pub_addr, "performing");
 
-    let response = reqwest::get(format!("http://{}{}", pub_addr, api::TEST_CODE)).await;
+    let response = reqwest::get(format!("http://{}{}", pub_addr, api::CTEST)).await;
     if let Err(e) = response {
         warn!(err = ?e, "failed: could not reach server");
         return;

@@ -2,9 +2,9 @@ name: Rust
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,21 +15,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Debian (glibc Linux)
           - os: ubuntu-latest
-            container: debian:bookworm-slim
+            container: rust:slim
             name: debian
 
-          # Alpine (musl Linux)
           - os: ubuntu-latest
-            container: alpine:3.19
+            container: rust:alpine
             name: alpine
 
-          # macOS
           - os: macos-latest
             name: macos
 
-          # Windows
           - os: windows-latest
             name: windows
 
@@ -37,6 +33,5 @@ jobs:
     container: ${{ matrix.container || '' }}
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
+      - uses: actions/checkout@v4
+      - run: cargo build --verbose

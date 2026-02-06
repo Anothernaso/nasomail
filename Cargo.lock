@@ -1157,8 +1157,10 @@ dependencies = [
  "clap",
  "colored",
  "nasomail_shared",
+ "reqwest",
  "serde",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]

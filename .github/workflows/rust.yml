@@ -11,8 +11,30 @@ env:
 
 jobs:
   build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Debian (glibc Linux)
+          - os: ubuntu-latest
+            container: debian:bookworm-slim
+            name: debian
 
-    runs-on: ubuntu-latest
+          # Alpine (musl Linux)
+          - os: ubuntu-latest
+            container: alpine:3.19
+            name: alpine
+
+          # macOS
+          - os: macos-latest
+            name: macos
+
+          # Windows
+          - os: windows-latest
+            name: windows
+
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container || '' }}
 
     steps:
     - uses: actions/checkout@v4

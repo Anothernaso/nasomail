@@ -11,6 +11,8 @@ mod meta;
 
 use cli::{Cli, Commands};
 
+use crate::connection::ConnectionTestResult;
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli = task::spawn_blocking(|| Cli::parse()).await?;
@@ -18,18 +20,24 @@ async fn main() -> anyhow::Result<()> {
     let mut exit_code = 0;
 
     match cli.command {
-        Commands::LogIn { name, passphrase } => {}
+        Commands::LogIn {
+            name: _,
+            passphrase: _,
+        } => {}
         Commands::LogOut => {}
         Commands::Connect { addr } => {
             connection::set_connection(&addr).await?;
 
-            let success = connection::test_connection().await?;
+            let result = connection::test_connection().await?;
 
-            if success {
+            if result == ConnectionTestResult::Success {
                 println!(
                     "{}{}",
-                    "Success".green(),
-                    format!(": Connected to server: {}", addr.blue())
+                    "Success".bright_green().bold(),
+                    format!(
+                        ": Connected to server{}",
+                        format!(": {}", addr.trim()).bright_blue().bold()
+                    )
                 );
             } else {
                 connection::remove_connection().await?;
@@ -37,18 +45,26 @@ async fn main() -> anyhow::Result<()> {
                 exit_code = 1;
                 println!(
                     "{}{}",
-                    "Error".red(),
-                    format!(": Could not reach server: {}", addr.blue())
+                    "Error".bright_red().bold(),
+                    format!(
+                        ": Could not reach server{}{}",
+                        format!(": {}", addr.trim()).bright_blue().bold(),
+                        format!(": {:?}", result)
+                    )
                 );
             }
         }
         Commands::Disconnect => {
             if connection::remove_connection().await? {
-                println!("{}{}", "Success".green(), ": Disconnected from server");
+                println!(
+                    "{}{}",
+                    "Success".bright_green().bold(),
+                    ": Disconnected from server"
+                );
             } else {
                 println!(
                     "{}{}",
-                    "Warning".yellow(),
+                    "Warning".bright_yellow().bold(),
                     ": No server is currently connected"
                 );
             }

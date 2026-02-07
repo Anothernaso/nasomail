@@ -32,8 +32,17 @@ pub enum ConnectionTestError {
     IoError(ConnectionIoError),
 }
 
+/// An enum of results for client connection tests.
+#[derive(Debug, PartialEq, Eq)]
+pub enum ConnectionTestResult {
+    Success,
+    ConnectionFailure,
+    BadResponse,
+    NoConnection,
+}
+
 /// Writes a `&str` representing the client's current
-/// connection, to `crate::meta::CONNECTION_PATH` as plain text.
+/// connection, as plain text.
 ///
 /// # Errors
 ///
@@ -43,10 +52,10 @@ pub enum ConnectionTestError {
 /// Returns `Err(RwError)`   if `File::write_all` fails.
 ///
 pub async fn set_connection(connection: &str) -> anyhow::Result<(), ConnectionIoError> {
-    let path = meta::connection_path().expect("failed to get connection path");
+    let path = meta::connection_path();
 
     if let Some(parent) = path.parent()
-        && !fs::try_exists(&path)
+        && !fs::try_exists(&parent)
             .await
             .map_err(|e| ConnectionIoError::DirError(e))?
     {
@@ -66,8 +75,7 @@ pub async fn set_connection(connection: &str) -> anyhow::Result<(), ConnectionIo
     Ok(())
 }
 
-/// Reads the client's current connection from
-/// `crate::meta::CONNECTION_PATH` as plain text.
+/// Reads the client's current connection as plain text.
 ///
 /// Returns `Ok(Some(String))` if there is a saved connection.
 /// Returns `Ok(None)`         if there is no saved connection.
@@ -79,12 +87,9 @@ pub async fn set_connection(connection: &str) -> anyhow::Result<(), ConnectionIo
 /// Returns `Err(RwError)`   if `File::read_to_string` fails.
 ///
 pub async fn get_connection() -> anyhow::Result<Option<String>, ConnectionIoError> {
-    let path = meta::connection_path().expect("failed to get connection path");
+    let path = meta::connection_path();
 
-    if !fs::try_exists(&path)
-        .await
-        .map_err(|e| ConnectionIoError::DirError(e))?
-    {
+    if !has_connection().await? {
         return Ok(None);
     }
 
@@ -100,10 +105,10 @@ pub async fn get_connection() -> anyhow::Result<Option<String>, ConnectionIoErro
     Ok(Some(buf.trim().to_owned()))
 }
 
-/// Removes saved connection at `crate::meta::CONNECTION_PATH` if there is one.
+/// Removes the current saved connection if there is one.
 ///
 /// Returns `Ok(true)`  if the saved connection was removed successfully.
-/// Returns `Ok(false)` if there was no saved connection.
+/// Returns `Ok(false)` if there is no saved connection.
 ///
 /// # Errors
 ///
@@ -111,12 +116,9 @@ pub async fn get_connection() -> anyhow::Result<Option<String>, ConnectionIoErro
 /// Returns `Err(FileError)` if `fs::remove_file` fails.
 ///
 pub async fn remove_connection() -> anyhow::Result<bool, ConnectionIoError> {
-    let path = meta::connection_path().expect("failed to get connection path");
+    let path = meta::connection_path();
 
-    if !fs::try_exists(&path)
-        .await
-        .map_err(|e| ConnectionIoError::DirError(e))?
-    {
+    if !has_connection().await? {
         return Ok(false);
     }
 
@@ -127,25 +129,43 @@ pub async fn remove_connection() -> anyhow::Result<bool, ConnectionIoError> {
     Ok(true)
 }
 
-/// Checks if the saved connection at `crate::meta::CONNECTION_PATH` is reachable.
+/// Checks if there is currently a saved connection.
+///
+/// Returns `Ok(true)`  if there is a saved connection.
+/// Returns `Ok(false)` if there is not a saved connection.
+///
+/// # Errors:
+///
+/// Returns `Err(DirError)` if `fs::try_exists` fails.
+///
+pub async fn has_connection() -> anyhow::Result<bool, ConnectionIoError> {
+    let path = meta::connection_path();
+
+    Ok(fs::try_exists(path)
+        .await
+        .map_err(|e| ConnectionIoError::DirError(e))?)
+}
+
+/// Checks if the current saved connection is reachable.
 ///
 /// Returns `Ok`  if the connection could be reached.
 /// Returns `Err` if the connection could not be reached.
 ///
-pub async fn test_connection() -> anyhow::Result<bool, ConnectionTestError> {
-    let connection = if let Some(connection) = get_connection()
+pub async fn test_connection() -> anyhow::Result<ConnectionTestResult, ConnectionTestError> {
+    let Some(connection) = get_connection()
         .await
-        .map_err(|e| ConnectionTestError::IoError(e))?
-    {
-        connection
-    } else {
-        return Ok(false);
+        .map_err(ConnectionTestError::IoError)?
+    else {
+        return Ok(ConnectionTestResult::NoConnection);
     };
 
-    Ok(
-        match reqwest::get(format!("http://{}{}", connection, api::CTEST)).await {
-            Ok(res) => res.status() == StatusCode::OK,
-            Err(_) => false,
-        },
-    )
+    let url = format!("http://{}{}", connection, api::CTEST);
+
+    let result = match reqwest::get(url).await {
+        Ok(res) if res.status() == StatusCode::OK => ConnectionTestResult::Success,
+        Ok(_) => ConnectionTestResult::BadResponse,
+        Err(_) => ConnectionTestResult::ConnectionFailure,
+    };
+
+    Ok(result)
 }

@@ -25,8 +25,8 @@ pub enum CredentialsIoError {
     RwError(io::Error),
 }
 
-/// Writes an `AuthPayload` containing the user's
-/// credentials to `crate::meta::CREDENTIALS_PATH` as JSON.
+/// Writes an `AuthPayload` containing
+/// the user's credentials as JSON.
 ///
 /// # Errors
 ///
@@ -37,10 +37,10 @@ pub enum CredentialsIoError {
 /// Returns `Err(RwError)`   if `File::write_all` fails.
 ///
 pub async fn set_credentials(payload: &AuthPayload) -> anyhow::Result<(), CredentialsIoError> {
-    let path = meta::credentials_path().expect("failed to get credentials path");
+    let path = meta::credentials_path();
 
     if let Some(parent) = path.parent()
-        && !fs::try_exists(&path)
+        && !fs::try_exists(&parent)
             .await
             .map_err(|e| CredentialsIoError::DirError(e))?
     {
@@ -63,7 +63,7 @@ pub async fn set_credentials(payload: &AuthPayload) -> anyhow::Result<(), Creden
     Ok(())
 }
 
-/// Reads the user's credentials from `crate::meta::CREDENTIALS_PATH` as JSON
+/// Reads the user's credentials as JSON
 /// and returns it as an `AuthPayload`.
 ///
 /// Returns `Ok(Some(AuthPayload))` if there are saved credentials.
@@ -77,7 +77,7 @@ pub async fn set_credentials(payload: &AuthPayload) -> anyhow::Result<(), Creden
 /// Returns `Err(SerError)`  if `serde_json::from_str` fails.
 ///
 pub async fn get_credentials() -> anyhow::Result<Option<AuthPayload>, CredentialsIoError> {
-    let path = meta::credentials_path().expect("failed to get credentials path");
+    let path = meta::credentials_path();
 
     if !fs::try_exists(&path)
         .await
@@ -101,7 +101,7 @@ pub async fn get_credentials() -> anyhow::Result<Option<AuthPayload>, Credential
     Ok(Some(payload))
 }
 
-/// Removes saved credentials at `crate::meta::CREDENTIALS_PATH` if there are any.
+/// Removes saved credentials if there are any.
 ///
 /// Returns `Ok(true)`  if the saved credentials were removed successfully.
 /// Returns `Ok(false)` if there were no saved credentials.
@@ -112,7 +112,7 @@ pub async fn get_credentials() -> anyhow::Result<Option<AuthPayload>, Credential
 /// Returns `Err(FileError)` if `fs::remove_file` fails.
 ///
 pub async fn remove_credentials() -> anyhow::Result<bool, CredentialsIoError> {
-    let path = meta::credentials_path().expect("failed to get credentials path");
+    let path = meta::credentials_path();
 
     if !fs::try_exists(&path)
         .await
@@ -126,6 +126,23 @@ pub async fn remove_credentials() -> anyhow::Result<bool, CredentialsIoError> {
         .map_err(|e| CredentialsIoError::FileError(e))?;
 
     Ok(true)
+}
+
+/// Checks if there are any saved credentials.
+///
+/// Returns `Ok(true)`  if there are saved credentials.
+/// Returns `Ok(false)` if there are no saved credentials.
+///
+/// # Errors:
+///
+/// Returns `Err(DirError)` if `fs::try_exists` fails.
+///
+pub async fn has_credentials() -> anyhow::Result<bool, CredentialsIoError> {
+    let path = meta::credentials_path();
+
+    Ok(fs::try_exists(path)
+        .await
+        .map_err(|e| CredentialsIoError::DirError(e))?)
 }
 
 // TODO: Add function for checking if credentials are valid

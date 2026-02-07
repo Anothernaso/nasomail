@@ -1,5 +1,4 @@
-//! A utility for reading and writing the
-//! user's current session.
+//! A utility for storing the user's credentials.
 
 use std::path::PathBuf;
 
@@ -7,63 +6,127 @@ use nasomail_shared::auth::AuthPayload;
 
 use tokio::{
     fs::{self, File},
-    io::{self, AsyncWriteExt},
+    io::{self, AsyncReadExt, AsyncWriteExt},
 };
 
 use crate::meta;
 
 /// A custom error type for I/O-related
-/// errors in session management.
+/// errors in credentials management.
 #[derive(Debug, thiserror::Error)]
-pub enum SessionIoError {
+pub enum CredentialsIoError {
     #[error("failed to create session directories: {0}")]
-    MkdirError(io::Error),
+    DirError(io::Error),
 
-    #[error("failed to create/open session file: {0}")]
+    #[error("failed to create/open/remove credentials file: {0}")]
     FileError(io::Error),
 
     #[error("failed to serialize `payload`: {0}")]
     SerError(serde_json::Error),
 
-    #[error("failed to read/write session file: {0}")]
+    #[error("failed to read/write credentials file: {0}")]
     RwError(io::Error),
 }
 
-/// Writes an `AuthPayload` containing the credentials for the
-/// current session and writes it to `crate::meta::SESSION_PATH`
-/// as json.
+/// Writes an `AuthPayload` containing the user's
+/// credentials to `crate::meta::CREDENTIALS_PATH` as JSON.
 ///
 /// # Errors
 ///
-/// Returns `MkdirError` if `fs::try_exists` fails.
-/// Returns `MkdirError` if `fs::create_dir_all` fails.
-/// Returns `FileError` if `File::create` fails.
-/// Returns `SerError` if `serde_json::to_string_pretty` fails.
-/// Returns `RwError` if `File::write_all` fails.
+/// Returns `Err(DirError)`  if `fs::try_exists` fails.
+/// Returns `Err(DirError)`  if `fs::create_dir_all` fails.
+/// Returns `Err(FileError)` if `File::create` fails.
+/// Returns `Err(SerError)`  if `serde_json::to_string_pretty` fails.
+/// Returns `Err(RwError)`   if `File::write_all` fails.
 ///
-pub async fn set_session(payload: &AuthPayload) -> anyhow::Result<(), SessionIoError> {
-    let path = PathBuf::from(meta::SESSION_PATH);
+pub async fn set_credentials(payload: &AuthPayload) -> anyhow::Result<(), CredentialsIoError> {
+    let path = PathBuf::from(meta::CREDENTIALS_PATH);
 
     if let Some(parent) = path.parent()
-        && !fs::try_exists(meta::SESSION_PATH)
+        && !fs::try_exists(meta::CREDENTIALS_PATH)
             .await
-            .map_err(|e| SessionIoError::MkdirError(e))?
+            .map_err(|e| CredentialsIoError::DirError(e))?
     {
         fs::create_dir_all(parent)
             .await
-            .map_err(|e| SessionIoError::MkdirError(e))?;
+            .map_err(|e| CredentialsIoError::DirError(e))?;
     }
 
     let mut file = File::create(path)
         .await
-        .map_err(|e| SessionIoError::FileError(e))?;
+        .map_err(|e| CredentialsIoError::FileError(e))?;
 
     let payload_json =
-        serde_json::to_string_pretty(payload).map_err(|e| SessionIoError::SerError(e))?;
+        serde_json::to_string_pretty(payload).map_err(|e| CredentialsIoError::SerError(e))?;
 
     file.write_all(payload_json.as_bytes())
         .await
-        .map_err(|e| SessionIoError::RwError(e))?;
+        .map_err(|e| CredentialsIoError::RwError(e))?;
 
     Ok(())
+}
+
+/// Reads the user's credentials from `crate::meta::CREDENTIALS_PATH` as JSON
+/// and returns it as an `AuthPayload`.
+///
+/// Returns `Ok(Some(AuthPayload))` if there are saved credentials.
+/// Returns `Ok(None)`              if there are no saved credentials.
+///
+/// # Errors
+///
+/// Returns `Err(DirError)`  if `fs::try_exists` fails.
+/// Returns `Err(FileError)` if `File::open` fails.
+/// Returns `Err(RwError)`   if `File::read_to_string` fails.
+/// Returns `Err(SerError)`  if `serde_json::from_str` fails.
+///
+pub async fn get_credentials() -> anyhow::Result<Option<AuthPayload>, CredentialsIoError> {
+    let path = PathBuf::from(meta::CREDENTIALS_PATH);
+
+    if !fs::try_exists(&path)
+        .await
+        .map_err(|e| CredentialsIoError::DirError(e))?
+    {
+        return Ok(None);
+    }
+
+    let mut file = File::open(path)
+        .await
+        .map_err(|e| CredentialsIoError::FileError(e))?;
+
+    let mut buf = String::new();
+    file.read_to_string(&mut buf)
+        .await
+        .map_err(|e| CredentialsIoError::RwError(e))?;
+
+    let payload =
+        serde_json::from_str::<AuthPayload>(&buf).map_err(|e| CredentialsIoError::SerError(e))?;
+
+    Ok(Some(payload))
+}
+
+/// Removes saved credentials at `crate::meta::CREDENTIALS_PATH` if there are any.
+///
+/// Returns `Ok(true)`  if the saved credentials were removed successfully.
+/// Returns `Ok(false)` if there were no saved credentials.
+///
+/// # Errors
+///
+/// Returns `Err(DirError)`  if `fs::try_exists` fails.
+/// Returns `Err(FileError)` if `fs::remove_file` fails.
+///
+pub async fn remove_credentials() -> anyhow::Result<bool, CredentialsIoError> {
+    let path = PathBuf::from(meta::CREDENTIALS_PATH);
+
+    if !fs::try_exists(&path)
+        .await
+        .map_err(|e| CredentialsIoError::DirError(e))?
+    {
+        return Ok(false);
+    }
+
+    fs::remove_file(path)
+        .await
+        .map_err(|e| CredentialsIoError::FileError(e))?;
+
+    Ok(true)
 }

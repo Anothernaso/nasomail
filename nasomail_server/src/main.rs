@@ -26,6 +26,10 @@ use crate::{
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
+    // ############################
+    // ## Load the configuration ##
+    // ############################
+
     let cfg_path = Path::new(meta::CONFIG_PATH);
 
     let cfg = if fs::try_exists(cfg_path).await? {
@@ -52,6 +56,10 @@ async fn main() -> anyhow::Result<()> {
 
         cfg
     };
+
+    // #############################
+    // ## Initialize the database ##
+    // #############################
 
     let db_path = PathBuf::from(cfg.db_path().await.clone());
     if !fs::try_exists(&db_path).await? {
@@ -90,6 +98,10 @@ async fn main() -> anyhow::Result<()> {
             schema_path.display()
         )));
     }
+
+    // ####################
+    // ## Run the server ##
+    // ####################
 
     let app = AppContext::new(pool, cfg);
 

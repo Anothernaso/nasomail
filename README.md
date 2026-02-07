@@ -62,7 +62,7 @@ cargo build
 
 ### Prerequisites
 
-[How to Run](#how-to-run)
+[How to Build](#how-to-build)
 
 Make sure that you are in the project directory.
 

@@ -2,9 +2,9 @@ use clap::Parser;
 use cli::Cli;
 use tokio::task;
 
-pub mod auth;
-pub mod cli;
-pub mod meta;
+mod auth;
+mod cli;
+mod meta;
 
 #[tokio::main]
 async fn main() {

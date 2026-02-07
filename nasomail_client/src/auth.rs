@@ -127,3 +127,5 @@ pub async fn remove_credentials() -> anyhow::Result<bool, CredentialsIoError> {
 
     Ok(true)
 }
+
+// TODO: Add function for checking if credentials are valid

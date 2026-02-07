@@ -18,7 +18,10 @@ async fn main() -> anyhow::Result<()> {
     let mut exit_code = 0;
 
     match cli.command {
-        Commands::LogIn { name, passphrase } => {}
+        Commands::LogIn {
+            name: _,
+            passphrase: _,
+        } => {}
         Commands::LogOut => {}
         Commands::Connect { addr } => {
             connection::set_connection(&addr).await?;

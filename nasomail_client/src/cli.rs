@@ -25,11 +25,12 @@ pub enum Commands {
     /// Log out of the current user account
     LogOut,
 
-    /// Connect to a server specified
-    /// by the `--address` flag
+    /// Connect to the specified server
     Connect {
         /// The address of the server to connect to
-        #[arg(short, long)]
         addr: String,
     },
+
+    /// Disconnect from the currently connected server
+    Disconnect,
 }

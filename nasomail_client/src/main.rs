@@ -28,8 +28,8 @@ async fn main() -> anyhow::Result<()> {
             if success {
                 println!(
                     "{}{}",
-                    "Success: ".green(),
-                    format!("Connected to server: {}", addr.blue())
+                    "Success".green(),
+                    format!(": Connected to server: {}", addr.blue())
                 );
             } else {
                 connection::remove_connection().await?;
@@ -37,8 +37,19 @@ async fn main() -> anyhow::Result<()> {
                 exit_code = 1;
                 println!(
                     "{}{}",
-                    "Error: ".red(),
-                    format!("Could not reach server: {}", addr.blue())
+                    "Error".red(),
+                    format!(": Could not reach server: {}", addr.blue())
+                );
+            }
+        }
+        Commands::Disconnect => {
+            if connection::remove_connection().await? {
+                println!("{}{}", "Success".green(), ": Disconnected from server");
+            } else {
+                println!(
+                    "{}{}",
+                    "Warning".yellow(),
+                    ": No server is currently connected"
                 );
             }
         }

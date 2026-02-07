@@ -43,7 +43,7 @@ pub enum ConnectionTestError {
 /// Returns `Err(RwError)`   if `File::write_all` fails.
 ///
 pub async fn set_connection(connection: &str) -> anyhow::Result<(), ConnectionIoError> {
-    let path = meta::connection_path().expect("failed to get connection path");
+    let path = meta::connection_path();
 
     if let Some(parent) = path.parent()
         && !fs::try_exists(&path)
@@ -79,7 +79,7 @@ pub async fn set_connection(connection: &str) -> anyhow::Result<(), ConnectionIo
 /// Returns `Err(RwError)`   if `File::read_to_string` fails.
 ///
 pub async fn get_connection() -> anyhow::Result<Option<String>, ConnectionIoError> {
-    let path = meta::connection_path().expect("failed to get connection path");
+    let path = meta::connection_path();
 
     if !fs::try_exists(&path)
         .await
@@ -111,7 +111,7 @@ pub async fn get_connection() -> anyhow::Result<Option<String>, ConnectionIoErro
 /// Returns `Err(FileError)` if `fs::remove_file` fails.
 ///
 pub async fn remove_connection() -> anyhow::Result<bool, ConnectionIoError> {
-    let path = meta::connection_path().expect("failed to get connection path");
+    let path = meta::connection_path();
 
     if !fs::try_exists(&path)
         .await

@@ -37,7 +37,7 @@ pub enum CredentialsIoError {
 /// Returns `Err(RwError)`   if `File::write_all` fails.
 ///
 pub async fn set_credentials(payload: &AuthPayload) -> anyhow::Result<(), CredentialsIoError> {
-    let path = meta::credentials_path().expect("failed to get credentials path");
+    let path = meta::credentials_path();
 
     if let Some(parent) = path.parent()
         && !fs::try_exists(&path)
@@ -77,7 +77,7 @@ pub async fn set_credentials(payload: &AuthPayload) -> anyhow::Result<(), Creden
 /// Returns `Err(SerError)`  if `serde_json::from_str` fails.
 ///
 pub async fn get_credentials() -> anyhow::Result<Option<AuthPayload>, CredentialsIoError> {
-    let path = meta::credentials_path().expect("failed to get credentials path");
+    let path = meta::credentials_path();
 
     if !fs::try_exists(&path)
         .await
@@ -112,7 +112,7 @@ pub async fn get_credentials() -> anyhow::Result<Option<AuthPayload>, Credential
 /// Returns `Err(FileError)` if `fs::remove_file` fails.
 ///
 pub async fn remove_credentials() -> anyhow::Result<bool, CredentialsIoError> {
-    let path = meta::credentials_path().expect("failed to get credentials path");
+    let path = meta::credentials_path();
 
     if !fs::try_exists(&path)
         .await

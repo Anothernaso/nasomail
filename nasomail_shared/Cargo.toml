@@ -1,8 +1,8 @@
 [package]
 name = "nasomail_shared"
-version = "2.0.0"
+version = "2.0.1"
 authors = ["Anatnaso <antondev@kuthy.com>"]
 edition = "2024"
 
 [dependencies]
-serde = { version = "1.0.228", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }

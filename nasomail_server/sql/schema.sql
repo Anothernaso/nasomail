@@ -3,11 +3,11 @@ PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS users (
     id         INTEGER  PRIMARY KEY,
 
-    username   TEXT     UNIQUE NOT NULL COLLATE NOCASE
-        CHECK (username = TRIM(username) AND LENGTH(username) >=  3 AND LENGTH(username) <=  20),
+    name TEXT UNIQUE NOT NULL COLLATE NOCASE
+        CHECK (name = TRIM(name) AND LENGTH(name) >=  3 AND LENGTH(name) <=  20),
 
-    password   TEXT     NOT NULL
-        CHECK (password = TRIM(password) AND LENGTH(password) >=  8 AND LENGTH(password) <=  20),
+    passphrase TEXT NOT NULL
+        CHECK (passphrase = TRIM(passphrase) AND LENGTH(passphrase) >=  8 AND LENGTH(passphrase) <=  20),
 
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

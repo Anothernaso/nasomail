@@ -25,6 +25,13 @@ pub enum ConnectionIoError {
     RwError(io::Error),
 }
 
+/// A custom error type for connection tests.
+#[derive(Debug, thiserror::Error)]
+pub enum ConnectionTestError {
+    #[error("failed to read saved connection: {0}")]
+    IoError(ConnectionIoError),
+}
+
 /// Writes a `&str` representing the client's current
 /// connection, to `crate::meta::CONNECTION_PATH` as plain text.
 ///
@@ -116,6 +123,26 @@ pub async fn remove_connection() -> anyhow::Result<bool, ConnectionIoError> {
     fs::remove_file(path)
         .await
         .map_err(|e| ConnectionIoError::FileError(e))?;
+
+    Ok(true)
+}
+
+/// Checks if the saved connection at `crate::meta::CONNECTION_PATH` is reachable.
+///
+/// Returns `Ok`  if the connection could be reached.
+/// Returns `Err` if the connection could not be reached.
+///
+pub async fn test_connection() -> anyhow::Result<bool, ConnectionTestError> {
+    let connection = if let Some(connection) = get_connection()
+        .await
+        .map_err(|e| ConnectionTestError::IoError(e))?
+    {
+        connection
+    } else {
+        return Ok(false);
+    };
+
+    // TODO: Finish implementation.
 
     Ok(true)
 }

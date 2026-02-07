@@ -4,12 +4,14 @@
 
 use std::path::PathBuf;
 
+use reqwest::StatusCode;
 use tokio::{
     fs::{self, File},
     io::{self, AsyncReadExt, AsyncWriteExt},
 };
 
 use crate::meta;
+use nasomail_shared::api;
 
 /// A custom error type for I/O-related
 /// errors in connection management.
@@ -142,7 +144,10 @@ pub async fn test_connection() -> anyhow::Result<bool, ConnectionTestError> {
         return Ok(false);
     };
 
-    // TODO: Finish implementation.
-
-    Ok(true)
+    Ok(
+        match reqwest::get(format!("http://{}{}", connection, api::CTEST)).await {
+            Ok(res) => res.status() == StatusCode::OK,
+            Err(_) => false,
+        },
+    )
 }

@@ -12,7 +12,6 @@ pub trait RouterCtest {
 }
 
 impl RouterCtest for Router<AppContextGuard> {
-    #[instrument]
     fn with_ctest(self) -> Self {
         self.route(
             api::CTEST,

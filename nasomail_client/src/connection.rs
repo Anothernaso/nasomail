@@ -2,14 +2,14 @@
 //! the client and the server, and it also provides
 //! functions to check the client's current connection status.
 
-use std::path::PathBuf;
-
+use reqwest::StatusCode;
 use tokio::{
     fs::{self, File},
     io::{self, AsyncReadExt, AsyncWriteExt},
 };
 
 use crate::meta;
+use nasomail_shared::api;
 
 /// A custom error type for I/O-related
 /// errors in connection management.
@@ -25,6 +25,13 @@ pub enum ConnectionIoError {
     RwError(io::Error),
 }
 
+/// A custom error type for connection tests.
+#[derive(Debug, thiserror::Error)]
+pub enum ConnectionTestError {
+    #[error("failed to read saved connection: {0}")]
+    IoError(ConnectionIoError),
+}
+
 /// Writes a `&str` representing the client's current
 /// connection, to `crate::meta::CONNECTION_PATH` as plain text.
 ///
@@ -36,7 +43,7 @@ pub enum ConnectionIoError {
 /// Returns `Err(RwError)`   if `File::write_all` fails.
 ///
 pub async fn set_connection(connection: &str) -> anyhow::Result<(), ConnectionIoError> {
-    let path = PathBuf::from(meta::CONNECTION_PATH);
+    let path = meta::connection_path().expect("failed to get connection path");
 
     if let Some(parent) = path.parent()
         && !fs::try_exists(&path)
@@ -72,7 +79,7 @@ pub async fn set_connection(connection: &str) -> anyhow::Result<(), ConnectionIo
 /// Returns `Err(RwError)`   if `File::read_to_string` fails.
 ///
 pub async fn get_connection() -> anyhow::Result<Option<String>, ConnectionIoError> {
-    let path = PathBuf::from(meta::CONNECTION_PATH);
+    let path = meta::connection_path().expect("failed to get connection path");
 
     if !fs::try_exists(&path)
         .await
@@ -104,7 +111,7 @@ pub async fn get_connection() -> anyhow::Result<Option<String>, ConnectionIoErro
 /// Returns `Err(FileError)` if `fs::remove_file` fails.
 ///
 pub async fn remove_connection() -> anyhow::Result<bool, ConnectionIoError> {
-    let path = PathBuf::from(meta::CONNECTION_PATH);
+    let path = meta::connection_path().expect("failed to get connection path");
 
     if !fs::try_exists(&path)
         .await
@@ -118,4 +125,27 @@ pub async fn remove_connection() -> anyhow::Result<bool, ConnectionIoError> {
         .map_err(|e| ConnectionIoError::FileError(e))?;
 
     Ok(true)
+}
+
+/// Checks if the saved connection at `crate::meta::CONNECTION_PATH` is reachable.
+///
+/// Returns `Ok`  if the connection could be reached.
+/// Returns `Err` if the connection could not be reached.
+///
+pub async fn test_connection() -> anyhow::Result<bool, ConnectionTestError> {
+    let connection = if let Some(connection) = get_connection()
+        .await
+        .map_err(|e| ConnectionTestError::IoError(e))?
+    {
+        connection
+    } else {
+        return Ok(false);
+    };
+
+    Ok(
+        match reqwest::get(format!("http://{}{}", connection, api::CTEST)).await {
+            Ok(res) => res.status() == StatusCode::OK,
+            Err(_) => false,
+        },
+    )
 }

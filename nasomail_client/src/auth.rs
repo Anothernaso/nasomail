@@ -1,7 +1,5 @@
 //! A utility for storing the user's credentials.
 
-use std::path::PathBuf;
-
 use tokio::{
     fs::{self, File},
     io::{self, AsyncReadExt, AsyncWriteExt},
@@ -39,7 +37,7 @@ pub enum CredentialsIoError {
 /// Returns `Err(RwError)`   if `File::write_all` fails.
 ///
 pub async fn set_credentials(payload: &AuthPayload) -> anyhow::Result<(), CredentialsIoError> {
-    let path = PathBuf::from(meta::CREDENTIALS_PATH);
+    let path = meta::credentials_path().expect("failed to get credentials path");
 
     if let Some(parent) = path.parent()
         && !fs::try_exists(&path)
@@ -79,7 +77,7 @@ pub async fn set_credentials(payload: &AuthPayload) -> anyhow::Result<(), Creden
 /// Returns `Err(SerError)`  if `serde_json::from_str` fails.
 ///
 pub async fn get_credentials() -> anyhow::Result<Option<AuthPayload>, CredentialsIoError> {
-    let path = PathBuf::from(meta::CREDENTIALS_PATH);
+    let path = meta::credentials_path().expect("failed to get credentials path");
 
     if !fs::try_exists(&path)
         .await
@@ -114,7 +112,7 @@ pub async fn get_credentials() -> anyhow::Result<Option<AuthPayload>, Credential
 /// Returns `Err(FileError)` if `fs::remove_file` fails.
 ///
 pub async fn remove_credentials() -> anyhow::Result<bool, CredentialsIoError> {
-    let path = PathBuf::from(meta::CREDENTIALS_PATH);
+    let path = meta::credentials_path().expect("failed to get credentials path");
 
     if !fs::try_exists(&path)
         .await
@@ -129,3 +127,5 @@ pub async fn remove_credentials() -> anyhow::Result<bool, CredentialsIoError> {
 
     Ok(true)
 }
+
+// TODO: Add function for checking if credentials are valid

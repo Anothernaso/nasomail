@@ -32,6 +32,15 @@ pub enum ConnectionTestError {
     IoError(ConnectionIoError),
 }
 
+/// An enum of results for client connection tests.
+#[derive(Debug, PartialEq, Eq)]
+pub enum ConnectionTestResult {
+    Success,
+    ConnectionFailure,
+    BadResponse,
+    NoConnection,
+}
+
 /// Writes a `&str` representing the client's current
 /// connection, as plain text.
 ///
@@ -142,20 +151,21 @@ pub async fn has_connection() -> anyhow::Result<bool, ConnectionIoError> {
 /// Returns `Ok`  if the connection could be reached.
 /// Returns `Err` if the connection could not be reached.
 ///
-pub async fn test_connection() -> anyhow::Result<bool, ConnectionTestError> {
-    let connection = if let Some(connection) = get_connection()
+pub async fn test_connection() -> anyhow::Result<ConnectionTestResult, ConnectionTestError> {
+    let Some(connection) = get_connection()
         .await
-        .map_err(|e| ConnectionTestError::IoError(e))?
-    {
-        connection
-    } else {
-        return Ok(false);
+        .map_err(ConnectionTestError::IoError)?
+    else {
+        return Ok(ConnectionTestResult::NoConnection);
     };
 
-    Ok(
-        match reqwest::get(format!("http://{}{}", connection, api::CTEST)).await {
-            Ok(res) => res.status() == StatusCode::OK,
-            Err(_) => false,
-        },
-    )
+    let url = format!("http://{}{}", connection, api::CTEST);
+
+    let result = match reqwest::get(url).await {
+        Ok(res) if res.status() == StatusCode::OK => ConnectionTestResult::Success,
+        Ok(_) => ConnectionTestResult::BadResponse,
+        Err(_) => ConnectionTestResult::ConnectionFailure,
+    };
+
+    Ok(result)
 }

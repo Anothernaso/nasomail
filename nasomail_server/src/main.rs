@@ -9,10 +9,10 @@ use tokio::{
     time::{self, Duration},
 };
 
-pub mod app;
-pub mod config;
-pub mod ctest;
-pub mod meta;
+mod app;
+mod config;
+mod ctest;
+mod meta;
 
 use crate::{
     app::*,

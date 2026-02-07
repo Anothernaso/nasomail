@@ -18,13 +18,13 @@ pub enum CredentialsIoError {
     #[error("failed to create session directories: {0}")]
     DirError(io::Error),
 
-    #[error("failed to create/open session file: {0}")]
+    #[error("failed to create/open/remove credentials file: {0}")]
     FileError(io::Error),
 
     #[error("failed to serialize `payload`: {0}")]
     SerError(serde_json::Error),
 
-    #[error("failed to read/write session file: {0}")]
+    #[error("failed to read/write credentials file: {0}")]
     RwError(io::Error),
 }
 
@@ -102,4 +102,31 @@ pub async fn get_credentials() -> anyhow::Result<Option<AuthPayload>, Credential
         serde_json::from_str::<AuthPayload>(&buf).map_err(|e| CredentialsIoError::SerError(e))?;
 
     Ok(Some(payload))
+}
+
+/// Removes saved credentials at `crate::meta::CREDENTIALS_PATH` if there are any.
+///
+/// Returns `Ok(true)`  if the saved credentials were removed successfully.
+/// Returns `Ok(false)` if there were no saved credentials.
+///
+/// # Errors
+///
+/// Returns `Err(DirError)`  if `fs::try_exists` fails.
+/// Returns `Err(FileError)` if `fs::remove_file` fails.
+///
+pub async fn remove_credentials() -> anyhow::Result<bool, CredentialsIoError> {
+    let path = PathBuf::from(meta::CREDENTIALS_PATH);
+
+    if !fs::try_exists(&path)
+        .await
+        .map_err(|e| CredentialsIoError::DirError(e))?
+    {
+        return Ok(false);
+    }
+
+    fs::remove_file(path)
+        .await
+        .map_err(|e| CredentialsIoError::FileError(e))?;
+
+    Ok(true)
 }

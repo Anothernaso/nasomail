@@ -9,15 +9,15 @@ use tokio::{
     time::{self, Duration},
 };
 
+mod api;
 mod app;
 mod config;
-mod ctest;
 mod meta;
 
 use crate::{
+    api::{RouterApi, ctest},
     app::*,
     config::{Config, ConfigSerializable},
-    ctest::RouterCtest,
 };
 
 #[tokio::main]
@@ -161,7 +161,7 @@ async fn main() {
         let ctx = app.ctx().await;
         let cfg = ctx.cfg().await;
 
-        let router = Router::new().with_ctest().with_state(app.clone());
+        let router = Router::new().with_api().with_state(app.clone());
 
         let listener = tokio::net::TcpListener::bind(cfg.addr().await.clone())
             .await

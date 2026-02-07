@@ -27,16 +27,18 @@ async fn main() -> anyhow::Result<()> {
 
             if success {
                 println!(
-                    "{}",
-                    format!("Successfully connected to server: {}", addr).green()
+                    "{}{}",
+                    "Success: ".green(),
+                    format!("Connected to server: {}", addr.blue())
                 );
             } else {
                 connection::remove_connection().await?;
 
                 exit_code = 1;
                 println!(
-                    "{}",
-                    format!("Error: Could not reach server: {}", addr).red()
+                    "{}{}",
+                    "Error: ".red(),
+                    format!("Could not reach server: {}", addr.blue())
                 );
             }
         }

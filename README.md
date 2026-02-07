@@ -40,7 +40,7 @@ or by running the [rustup](https://rust-lang.org/learn/get-started/) install scr
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-### Building the project
+### Building the Project
 
 First, clone the repository:
 ```sh
@@ -66,7 +66,7 @@ cargo build
 
 Make sure that you are in the project directory.
 
-### Running the server
+### Running the Server
 
 First, enter the server directory:
 ```sh
@@ -77,5 +77,19 @@ Then, run the server using [Cargo](https://doc.rust-lang.org/cargo/index.html):
 ```sh
 cargo run
 ```
+
+### Running the Client
+
+First, enter the client directory:
+```sh
+cd nasomail_client
+```
+
+Then, run the client using [Cargo](https://doc.rust-lang.org/cargo/index.html):
+```sh
+cargo run
+```
+
+Now you should see a list of available commands.
 
 ---

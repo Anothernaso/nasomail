@@ -2,8 +2,6 @@
 //! the client and the server, and it also provides
 //! functions to check the client's current connection status.
 
-use std::path::PathBuf;
-
 use reqwest::StatusCode;
 use tokio::{
     fs::{self, File},
@@ -45,7 +43,7 @@ pub enum ConnectionTestError {
 /// Returns `Err(RwError)`   if `File::write_all` fails.
 ///
 pub async fn set_connection(connection: &str) -> anyhow::Result<(), ConnectionIoError> {
-    let path = PathBuf::from(meta::CONNECTION_PATH);
+    let path = meta::connection_path().expect("failed to get connection path");
 
     if let Some(parent) = path.parent()
         && !fs::try_exists(&path)
@@ -81,7 +79,7 @@ pub async fn set_connection(connection: &str) -> anyhow::Result<(), ConnectionIo
 /// Returns `Err(RwError)`   if `File::read_to_string` fails.
 ///
 pub async fn get_connection() -> anyhow::Result<Option<String>, ConnectionIoError> {
-    let path = PathBuf::from(meta::CONNECTION_PATH);
+    let path = meta::connection_path().expect("failed to get connection path");
 
     if !fs::try_exists(&path)
         .await
@@ -113,7 +111,7 @@ pub async fn get_connection() -> anyhow::Result<Option<String>, ConnectionIoErro
 /// Returns `Err(FileError)` if `fs::remove_file` fails.
 ///
 pub async fn remove_connection() -> anyhow::Result<bool, ConnectionIoError> {
-    let path = PathBuf::from(meta::CONNECTION_PATH);
+    let path = meta::connection_path().expect("failed to get connection path");
 
     if !fs::try_exists(&path)
         .await

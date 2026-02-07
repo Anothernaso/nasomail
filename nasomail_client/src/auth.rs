@@ -2,20 +2,19 @@
 
 use std::path::PathBuf;
 
-use nasomail_shared::auth::AuthPayload;
-
 use tokio::{
     fs::{self, File},
     io::{self, AsyncReadExt, AsyncWriteExt},
 };
 
 use crate::meta;
+use nasomail_shared::auth::AuthPayload;
 
 /// A custom error type for I/O-related
 /// errors in credentials management.
 #[derive(Debug, thiserror::Error)]
 pub enum CredentialsIoError {
-    #[error("failed to create session directories: {0}")]
+    #[error("failed to create credentials directories: {0}")]
     DirError(io::Error),
 
     #[error("failed to create/open/remove credentials file: {0}")]
@@ -43,7 +42,7 @@ pub async fn set_credentials(payload: &AuthPayload) -> anyhow::Result<(), Creden
     let path = PathBuf::from(meta::CREDENTIALS_PATH);
 
     if let Some(parent) = path.parent()
-        && !fs::try_exists(meta::CREDENTIALS_PATH)
+        && !fs::try_exists(&path)
             .await
             .map_err(|e| CredentialsIoError::DirError(e))?
     {

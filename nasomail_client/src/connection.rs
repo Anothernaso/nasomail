@@ -151,7 +151,7 @@ pub async fn has_connection() -> anyhow::Result<bool, ConnectionIoError> {
 /// Returns `Ok`  if the connection could be reached.
 /// Returns `Err` if the connection could not be reached.
 ///
-pub async fn test_connection() -> anyhow::Result<ConnectionTestResult, ConnectionTestError> {
+pub async fn try_connection() -> anyhow::Result<ConnectionTestResult, ConnectionTestError> {
     let Some(connection) = get_connection()
         .await
         .map_err(ConnectionTestError::IoError)?

@@ -1,6 +1,6 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum UserQuery {
     ById { id: i64 },        // Use an `i64` since that's what SQLite uses internally

@@ -28,7 +28,7 @@ async fn main() -> anyhow::Result<()> {
         Commands::Connect { addr } => {
             connection::set_connection(&addr).await?;
 
-            let result = connection::test_connection().await?;
+            let result = connection::try_connection().await?;
 
             if result == ConnectionTestResult::Success {
                 println!(

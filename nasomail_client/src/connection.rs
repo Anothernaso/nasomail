@@ -159,7 +159,7 @@ pub async fn test_connection() -> anyhow::Result<ConnectionTestResult, Connectio
         return Ok(ConnectionTestResult::NoConnection);
     };
 
-    let url = format!("http://{}{}", connection, api::api_ctest_absolute()); // TODO: Use correct URL
+    let url = format!("http://{}{}", connection, api::api_ctest_absolute());
 
     let result = match reqwest::get(url).await {
         Ok(res) if res.status() == StatusCode::OK => ConnectionTestResult::Success,

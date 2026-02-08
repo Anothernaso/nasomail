@@ -4,18 +4,25 @@
 use axum::Router;
 
 pub mod ctest;
+pub mod users;
 
-use crate::api::ctest::RouterCtest;
+use crate::api::ctest::RouterApiCtest;
+use crate::api::users::RouterApiUsers;
 use crate::app::AppContextGuard;
 
-pub trait RouterApi {
+use nasomail_shared::api;
+
+pub trait RouterApiRoot {
     /// Registers all the routing for the
     /// entire REST API in `nasomail_server`.
-    fn with_api(self) -> Self;
+    fn with_api_root(self) -> Self;
 }
 
-impl RouterApi for Router<AppContextGuard> {
-    fn with_api(self) -> Self {
-        self.with_ctest()
+impl RouterApiRoot for Router<AppContextGuard> {
+    fn with_api_root(self) -> Self {
+        self.nest(
+            api::API_ROOT,
+            Router::new().with_api_ctest().with_api_users(),
+        )
     }
 }

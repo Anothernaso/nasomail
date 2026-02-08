@@ -7,14 +7,14 @@ use tracing::{info, instrument, warn};
 use crate::app::AppContextGuard;
 use nasomail_shared::api;
 
-pub trait RouterCtest {
-    fn with_ctest(self) -> Self;
+pub trait RouterApiCtest {
+    fn with_api_ctest(self) -> Self;
 }
 
-impl RouterCtest for Router<AppContextGuard> {
-    fn with_ctest(self) -> Self {
+impl RouterApiCtest for Router<AppContextGuard> {
+    fn with_api_ctest(self) -> Self {
         self.route(
-            api::CTEST,
+            api::API_CTEST,
             get(|State(app): State<AppContextGuard>| async move {
                 app.ctx().await.test_code().await.clone()
             }),
@@ -38,7 +38,7 @@ pub async fn connection_test(app: AppContextGuard) {
 
     info!(pub_addr = %pub_addr, "performing");
 
-    let response = reqwest::get(format!("http://{}{}", pub_addr, api::CTEST)).await;
+    let response = reqwest::get(format!("http://{}{}", pub_addr, api::api_ctest_absolute())).await;
     if let Err(e) = response {
         warn!(err = ?e, "failed: could not reach server");
         return;

@@ -1151,7 +1151,7 @@ dependencies = [
 
 [[package]]
 name = "nasomail_client"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1166,7 +1166,7 @@ dependencies = [
 
 [[package]]
 name = "nasomail_server"
-version = "1.2.0"
+version = "1.3.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -1185,7 +1185,7 @@ dependencies = [
 
 [[package]]
 name = "nasomail_shared"
-version = "2.0.1"
+version = "2.1.0"
 dependencies = [
  "serde",
 ]

@@ -1,19 +1,20 @@
-use anyhow::anyhow;
-use std::path::{Path, PathBuf};
-use tracing::{info, instrument};
+mod api;
+mod app;
+mod config;
+mod meta;
 
+use std::path::{Path, PathBuf};
+
+use anyhow::anyhow;
 use axum::Router;
 use sqlx::sqlite::SqlitePoolOptions;
+use tracing::{info, instrument};
+
 use tokio::{
     fs::{self, File},
     io::AsyncWriteExt,
     time::{self, Duration},
 };
-
-mod api;
-mod app;
-mod config;
-mod meta;
 
 use crate::{
     api::{RouterApi, ctest},

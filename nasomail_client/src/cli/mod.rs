@@ -1,4 +1,13 @@
+mod connect;
+mod disconnect;
+mod login;
+mod logout;
+
+use std::process::ExitCode;
+
+use crate::session::connection;
 use clap::{Parser, Subcommand};
+use colored::Colorize;
 
 /// A simple client application for communicating through a NasoMail server
 #[derive(Parser)]
@@ -33,4 +42,17 @@ pub enum Commands {
 
     /// Disconnect from the currently connected server
     Disconnect,
+}
+
+impl Cli {
+    /// Runs the command specified by the user
+    /// when parsing the arguments.
+    pub async fn run(self) -> anyhow::Result<ExitCode> {
+        Ok(match self.command {
+            Commands::LogIn { name, passphrase } => login::login(name, passphrase).await?,
+            Commands::LogOut => logout::logout().await?,
+            Commands::Connect { addr } => connect::connect(addr).await?,
+            Commands::Disconnect => disconnect::disconnect().await?,
+        })
+    }
 }

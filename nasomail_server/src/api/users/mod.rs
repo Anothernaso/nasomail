@@ -1,13 +1,17 @@
 mod auth;
 mod has;
+mod register;
 
-use crate::{
-    api::users::{auth::RouterApiUsersAuth, has::RouterApiUsersHas},
-    app::AppContextGuard,
-};
 use axum::Router;
 
 use nasomail_shared::api;
+
+use crate::{
+    api::users::{
+        auth::RouterApiUsersAuth, has::RouterApiUsersHas, register::RouterApiUsersRegister,
+    },
+    app::AppContextGuard,
+};
 
 pub trait RouterApiUsers {
     /// Registers routes for
@@ -19,7 +23,10 @@ impl RouterApiUsers for Router<AppContextGuard> {
     fn with_api_users(self) -> Self {
         self.nest(
             api::API_USERS,
-            Router::new().with_api_users_has().with_api_users_auth(),
+            Router::new()
+                .with_api_users_has()
+                .with_api_users_auth()
+                .with_api_users_register(),
         )
     }
 }

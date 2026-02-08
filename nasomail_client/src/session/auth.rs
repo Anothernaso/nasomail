@@ -1,14 +1,13 @@
 //! A utility for storing the user's credentials.
 
-use reqwest::StatusCode;
 use tokio::{
     fs::{self, File},
     io::{self, AsyncReadExt, AsyncWriteExt},
 };
 
 use crate::{
-    connection::{self, ConnectionIoError, ConnectionTestError, ConnectionTestResult},
     meta,
+    session::connection::{self, ConnectionIoError, ConnectionTestError, ConnectionTestResult},
 };
 use nasomail_shared::{
     api,

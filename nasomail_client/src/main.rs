@@ -20,11 +20,22 @@ async fn main() -> anyhow::Result<()> {
     let mut exit_code = 0;
 
     match cli.command {
+        // ############
+        // ## LOG IN ##
+        // ############
         Commands::LogIn {
             name: _,
             passphrase: _,
         } => {}
+
+        // #############
+        // ## LOG OUT ##
+        // #############
         Commands::LogOut => {}
+
+        // #############
+        // ## CONNECT ##
+        // #############
         Commands::Connect { addr } => {
             connection::set_connection(&addr).await?;
 
@@ -54,6 +65,10 @@ async fn main() -> anyhow::Result<()> {
                 );
             }
         }
+
+        // ################
+        // ## DISCONNECT ##
+        // ################
         Commands::Disconnect => {
             if connection::remove_connection().await? {
                 println!(
@@ -69,7 +84,11 @@ async fn main() -> anyhow::Result<()> {
                 );
             }
         }
-    }
+    } // <------+
+    //          |
+    //   ###############
+    //   ## MATCH END ##
+    //   ###############
 
     exit(exit_code);
 }

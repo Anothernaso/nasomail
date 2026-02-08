@@ -30,6 +30,7 @@ impl RouterApiUsersAuth for Router<AppContextGuard> {
 /// Checks if the `passphrase` of the provided `PassOnlyAuthPayload`
 /// matches the `passphrase` of the user in the `users` table of the database
 /// specified by the `id` or `name` fields of the provided `UserQuery`.
+#[axum::debug_handler]
 #[instrument(skip(app, query, payload))]
 async fn handle(
     State(app): State<AppContextGuard>,

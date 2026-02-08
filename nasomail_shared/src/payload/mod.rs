@@ -7,6 +7,7 @@
 use serde::{Deserialize, Serialize};
 
 pub mod auth;
+pub mod register;
 
 #[derive(Serialize, Deserialize)]
 pub struct BoolPayload {

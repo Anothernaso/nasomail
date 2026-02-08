@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 mod cli;
 mod meta;
 mod session;

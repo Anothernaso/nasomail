@@ -31,6 +31,7 @@ impl RouterApiUsersHas for Router<AppContextGuard> {
 /// and checks if it exists in the `users` table of the database,
 /// then it returns a `BoolPayload` where the `result` field
 /// represents whether or not the database has the specified user.
+#[axum::debug_handler]
 #[instrument(skip(app, query))]
 async fn handle(
     State(app): State<AppContextGuard>,

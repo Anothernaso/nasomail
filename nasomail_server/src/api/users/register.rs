@@ -1,7 +1,9 @@
-use axum::{Router, routing::get};
+use axum::{Json, Router, http::StatusCode, response, routing::get};
 use tracing::instrument;
 
 use nasomail_shared::api;
+
+use nasomail_shared::payload::{auth::AuthPayload, register::RegisterResultPayload};
 
 use crate::app::AppContextGuard;
 
@@ -18,5 +20,10 @@ impl RouterApiUsersRegister for Router<AppContextGuard> {
     }
 }
 
-#[instrument]
-async fn handle() {}
+#[axum::debug_handler]
+#[instrument(skip(payload))]
+async fn handle(
+    Json(payload): Json<AuthPayload>,
+) -> response::Result<Json<RegisterResultPayload>, StatusCode> {
+    Ok(Json(RegisterResultPayload::Success { user_id: 0 })) // TODO: Implement database query
+}

@@ -54,12 +54,6 @@ pub enum CredentialsTestError {
     #[error("connection test failed: {0}")]
     ConnectionTestError(ConnectionTestError),
 
-    #[error("bad connection test result: {0:?}")]
-    BadConnectionTestResult(ConnectionTestResult),
-
-    #[error("no server is currently connected")]
-    NoConnection,
-
     #[error("could not reach the server: {0}")]
     ConnectionFailure(reqwest::Error),
 }
@@ -69,7 +63,9 @@ pub enum CredentialsTestError {
 pub enum CredentialsTestResult {
     Success,
     AuthFailure,
+    BadConnection(ConnectionTestResult),
     NoCredentials,
+    NoConnection,
 }
 
 /// Writes an `AuthPayload` containing
@@ -195,8 +191,8 @@ pub async fn has_credentials() -> anyhow::Result<bool, CredentialsIoError> {
 /// Checks if the current saved credentials are valid
 /// on the currently connected server.
 ///
-/// Returns `Ok(CredentialsTestResult)` if the server responded with the results or if there were no saved credentials.
-/// Returns `Err(CredentialsTestError)` if the test failed to be performed.
+/// Returns `Ok(CredentialsTestResult)` unless any unexpected errors occur.
+/// Returns `Err(CredentialsTestError)` if the test failed to be performed due to an unexpected error.
 ///
 pub async fn try_credentials() -> anyhow::Result<CredentialsTestResult, CredentialsTestError> {
     let result = connection::try_connection()
@@ -204,14 +200,14 @@ pub async fn try_credentials() -> anyhow::Result<CredentialsTestResult, Credenti
         .map_err(CredentialsTestError::ConnectionTestError)?;
 
     if result != ConnectionTestResult::Success {
-        return Err(CredentialsTestError::BadConnectionTestResult(result));
+        return Ok(CredentialsTestResult::BadConnection(result));
     }
 
     let Some(connection) = connection::get_connection()
         .await
         .map_err(CredentialsTestError::ConnectionIoError)?
     else {
-        return Err(CredentialsTestError::NoConnection);
+        return Ok(CredentialsTestResult::NoConnection);
     };
 
     let Some(credentials) = get_credentials()

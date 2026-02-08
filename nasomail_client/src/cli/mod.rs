@@ -1,13 +1,13 @@
+mod connect;
+mod disconnect;
+mod login;
+mod logout;
+
 use std::process::ExitCode;
 
-use crate::session::{
-    auth::{self, CredentialsTestResult},
-    connection::{self, ConnectionTestResult},
-};
+use crate::session::connection;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
-
-use nasomail_shared::payload::auth::AuthPayload;
 
 /// A simple client application for communicating through a NasoMail server
 #[derive(Parser)]
@@ -49,118 +49,10 @@ impl Cli {
     /// when parsing the arguments.
     pub async fn run(self) -> anyhow::Result<ExitCode> {
         Ok(match self.command {
-            // ############
-            // ## LOG IN ##
-            // ############
-            Commands::LogIn { name, passphrase } => {
-                auth::set_credentials(&AuthPayload {
-                    username: name.clone(),
-                    passphrase: passphrase,
-                })
-                .await?;
-
-                let result = auth::try_credentials().await?;
-
-                if result == CredentialsTestResult::Success {
-                    println!(
-                        "{}{}",
-                        "Success".bright_green().bold(),
-                        format!(
-                            ": Logged in as{}",
-                            format!(": {}", name.trim()).bright_blue().bold()
-                        )
-                    );
-
-                    ExitCode::SUCCESS
-                } else {
-                    auth::remove_credentials().await?;
-
-                    println!(
-                        "{}{}",
-                        "Error".bright_red().bold(),
-                        format!(
-                            ": Failed to authenticate{}",
-                            format!(": {:?}", result).bright_blue().bold()
-                        )
-                    );
-
-                    ExitCode::FAILURE
-                }
-            }
-
-            // #############
-            // ## LOG OUT ##
-            // #############
-            Commands::LogOut => {
-                auth::remove_credentials().await?;
-
-                println!("{}{}", "Success".bright_green().bold(), ": Logged out");
-
-                ExitCode::SUCCESS
-            }
-
-            // #############
-            // ## CONNECT ##
-            // #############
-            Commands::Connect { addr } => {
-                connection::set_connection(&addr).await?;
-
-                let result = connection::try_connection().await?;
-
-                if result == ConnectionTestResult::Success {
-                    println!(
-                        "{}{}",
-                        "Success".bright_green().bold(),
-                        format!(
-                            ": Connected to server{}",
-                            format!(": {}", addr.trim()).bright_blue().bold()
-                        )
-                    );
-
-                    ExitCode::SUCCESS
-                } else {
-                    connection::remove_connection().await?;
-
-                    println!(
-                        "{}{}",
-                        "Error".bright_red().bold(),
-                        format!(
-                            ": Could not reach server{}{}",
-                            format!(": {}", addr.trim()).bright_blue().bold(),
-                            format!(": {:?}", result)
-                        )
-                    );
-
-                    ExitCode::FAILURE
-                }
-            }
-
-            // ################
-            // ## DISCONNECT ##
-            // ################
-            Commands::Disconnect => {
-                if connection::remove_connection().await? {
-                    println!(
-                        "{}{}",
-                        "Success".bright_green().bold(),
-                        ": Disconnected from server"
-                    );
-
-                    ExitCode::SUCCESS
-                } else {
-                    println!(
-                        "{}{}",
-                        "Warning".bright_yellow().bold(),
-                        ": No server is currently connected"
-                    );
-
-                    ExitCode::FAILURE
-                }
-            }
-        }) // <------+
-        //           |
-        //   ###############
-        //   ## MATCH END ##
-        //   ###############
+            Commands::LogIn { name, passphrase } => login::login(name, passphrase).await?,
+            Commands::LogOut => logout::logout().await?,
+            Commands::Connect { addr } => connect::connect(addr).await?,
+            Commands::Disconnect => disconnect::disconnect().await?,
+        })
     }
 }

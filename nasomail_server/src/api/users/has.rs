@@ -13,27 +13,32 @@ use tracing::instrument;
 
 use crate::app::AppContextGuard;
 
-pub trait RouterApiHas {
-    /// Registers routes for
-    /// user related APIs
-    fn with_api_has(self) -> Self;
+pub trait RouterApiUsersHas {
+    /// Registers the `/api/users/has` endpoint
+    /// which checks whether or not the database
+    /// has the specified user.
+    fn with_api_users_has(self) -> Self;
 }
 
-impl RouterApiHas for Router<AppContextGuard> {
-    fn with_api_has(self) -> Self {
+impl RouterApiUsersHas for Router<AppContextGuard> {
+    fn with_api_users_has(self) -> Self {
         self.route(api::API_USERS_HAS, get(handle))
     }
 }
 
-#[instrument(skip(app, q))]
+/// This endpoint takes in the `id` or `name` of a user
+/// and checks if it exists in the `users` table of the database,
+/// then it returns a `BoolPayload` where the `result` field
+/// represents whether or not the database has the specified user.
+#[instrument(skip(app, query))]
 async fn handle(
     State(app): State<AppContextGuard>,
-    Query(q): Query<UserQuery>,
+    Query(query): Query<UserQuery>,
 ) -> response::Result<Json<BoolPayload>, StatusCode> {
     let ctx = app.ctx().await;
     let pool = ctx.pool().await;
 
-    let exists: bool = match q {
+    let exists: bool = match query {
         UserQuery::ById { id } => {
             sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE id = ?)")
                 .bind(id)

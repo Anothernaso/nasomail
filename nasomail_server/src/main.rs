@@ -16,7 +16,7 @@ mod config;
 mod meta;
 
 use crate::{
-    api::{RouterApiRoot, ctest},
+    api::{RouterApi, ctest},
     app::*,
     config::{Config, ConfigSerializable},
 };
@@ -108,7 +108,7 @@ async fn main() -> anyhow::Result<()> {
     let ctx = app.ctx().await;
     let cfg = ctx.cfg().await;
 
-    let router = Router::new().with_api_root().with_state(app.clone());
+    let router = Router::new().with_api().with_state(app.clone());
 
     let listener = tokio::net::TcpListener::bind(cfg.addr().await.clone()).await?;
 

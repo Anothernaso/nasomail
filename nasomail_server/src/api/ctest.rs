@@ -16,7 +16,7 @@ impl RouterApiCtest for Router<AppContextGuard> {
         self.route(
             api::API_CTEST,
             get(|State(app): State<AppContextGuard>| async move {
-                app.ctx().await.test_code().await.clone()
+                return app.ctx().await.test_code().await.clone();
             }),
         )
     }

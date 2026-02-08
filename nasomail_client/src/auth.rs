@@ -6,7 +6,7 @@ use tokio::{
 };
 
 use crate::meta;
-use nasomail_shared::auth::AuthPayload;
+use nasomail_shared::payload::auth::AuthPayload;
 
 /// A custom error type for I/O-related
 /// errors in credentials management.

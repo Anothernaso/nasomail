@@ -151,7 +151,7 @@ pub async fn has_connection() -> anyhow::Result<bool, ConnectionIoError> {
 /// Returns `Ok`  if the connection could be reached.
 /// Returns `Err` if the connection could not be reached.
 ///
-pub async fn test_connection() -> anyhow::Result<ConnectionTestResult, ConnectionTestError> {
+pub async fn try_connection() -> anyhow::Result<ConnectionTestResult, ConnectionTestError> {
     let Some(connection) = get_connection()
         .await
         .map_err(ConnectionTestError::IoError)?
@@ -159,7 +159,7 @@ pub async fn test_connection() -> anyhow::Result<ConnectionTestResult, Connectio
         return Ok(ConnectionTestResult::NoConnection);
     };
 
-    let url = format!("http://{}{}", connection, api::CTEST);
+    let url = format!("http://{}{}", connection, api::api_ctest_absolute());
 
     let result = match reqwest::get(url).await {
         Ok(res) if res.status() == StatusCode::OK => ConnectionTestResult::Success,

@@ -4,9 +4,13 @@
 use axum::Router;
 
 pub mod ctest;
+mod users;
 
-use crate::api::ctest::RouterCtest;
+use crate::api::ctest::RouterApiCtest;
+use crate::api::users::RouterApiUsers;
 use crate::app::AppContextGuard;
+
+use nasomail_shared::api;
 
 pub trait RouterApi {
     /// Registers all the routing for the
@@ -16,6 +20,6 @@ pub trait RouterApi {
 
 impl RouterApi for Router<AppContextGuard> {
     fn with_api(self) -> Self {
-        self.with_ctest()
+        self.nest(api::API, Router::new().with_api_ctest().with_api_users())
     }
 }

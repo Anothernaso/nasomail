@@ -1,12 +1,23 @@
 //! A utility for storing the user's credentials.
 
+use reqwest::StatusCode;
 use tokio::{
     fs::{self, File},
     io::{self, AsyncReadExt, AsyncWriteExt},
 };
 
-use crate::meta;
-use nasomail_shared::auth::AuthPayload;
+use crate::{
+    connection::{self, ConnectionIoError, ConnectionTestError, ConnectionTestResult},
+    meta,
+};
+use nasomail_shared::{
+    api,
+    payload::{
+        BoolPayload,
+        auth::{AuthPayload, PassOnlyAuthPayload},
+    },
+    query::user::UserQuery,
+};
 
 /// A custom error type for I/O-related
 /// errors in credentials management.
@@ -23,6 +34,38 @@ pub enum CredentialsIoError {
 
     #[error("failed to read/write credentials file: {0}")]
     RwError(io::Error),
+}
+
+/// A custom error type for credentials tests.
+#[derive(Debug, thiserror::Error)]
+pub enum CredentialsTestError {
+    #[error("failed to read saved connection: {0}")]
+    ConnectionIoError(ConnectionIoError),
+
+    #[error("failed to read saved credentials: {0}")]
+    CredentialsIoError(CredentialsIoError),
+
+    #[error("server responded with a bad status: {0}")]
+    BadStatus(reqwest::Error),
+
+    #[error("server responded with a bad json body: {0}")]
+    BadResponse(reqwest::Error),
+
+    #[error("connection test failed: {0}")]
+    ConnectionTestError(ConnectionTestError),
+
+    #[error("could not reach the server: {0}")]
+    ConnectionFailure(reqwest::Error),
+}
+
+/// An enum of results for client connection tests.
+#[derive(Debug, PartialEq, Eq)]
+pub enum CredentialsTestResult {
+    Success,
+    AuthFailure,
+    BadConnection(ConnectionTestResult),
+    NoCredentials,
+    NoConnection,
 }
 
 /// Writes an `AuthPayload` containing
@@ -145,4 +188,65 @@ pub async fn has_credentials() -> anyhow::Result<bool, CredentialsIoError> {
         .map_err(|e| CredentialsIoError::DirError(e))?)
 }
 
-// TODO: Add function for checking if credentials are valid
+/// Checks if the current saved credentials are valid
+/// on the currently connected server.
+///
+/// Returns `Ok(CredentialsTestResult)` unless any unexpected errors occur.
+/// Returns `Err(CredentialsTestError)` if the test failed to be performed due to an unexpected error.
+///
+pub async fn try_credentials() -> anyhow::Result<CredentialsTestResult, CredentialsTestError> {
+    let result = connection::try_connection()
+        .await
+        .map_err(CredentialsTestError::ConnectionTestError)?;
+
+    if result != ConnectionTestResult::Success {
+        return Ok(CredentialsTestResult::BadConnection(result));
+    }
+
+    let Some(connection) = connection::get_connection()
+        .await
+        .map_err(CredentialsTestError::ConnectionIoError)?
+    else {
+        return Ok(CredentialsTestResult::NoConnection);
+    };
+
+    let Some(credentials) = get_credentials()
+        .await
+        .map_err(CredentialsTestError::CredentialsIoError)?
+    else {
+        return Ok(CredentialsTestResult::NoCredentials);
+    };
+
+    let query = UserQuery::ByName {
+        name: credentials.username,
+    };
+
+    let result = reqwest::Client::new()
+        .post(format!(
+            "http://{}{}",
+            connection,
+            api::api_users_auth_absolute()
+        ))
+        .query(&query)
+        .json(&PassOnlyAuthPayload {
+            passphrase: credentials.passphrase,
+        })
+        .send()
+        .await
+        .map_err(CredentialsTestError::ConnectionFailure)?;
+
+    let result = result
+        .error_for_status()
+        .map_err(CredentialsTestError::BadStatus)?;
+
+    let payload = result
+        .json::<BoolPayload>()
+        .await
+        .map_err(CredentialsTestError::BadResponse)?;
+
+    Ok(if payload.result {
+        CredentialsTestResult::Success
+    } else {
+        CredentialsTestResult::AuthFailure
+    })
+}

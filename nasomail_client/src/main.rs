@@ -3,7 +3,7 @@ mod meta;
 mod session;
 
 use clap::Parser;
-use std::process::{ExitCode, exit};
+use std::process::ExitCode;
 use tokio::task;
 
 use cli::Cli;

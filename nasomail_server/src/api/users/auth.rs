@@ -6,10 +6,11 @@ use axum::{
     routing::post,
 };
 
+use tracing::instrument;
+
 use nasomail_shared::payload::BoolPayload;
 use nasomail_shared::query::user::UserQuery;
 use nasomail_shared::{api, payload::auth::PassOnlyAuthPayload};
-use tracing::instrument;
 
 use crate::app::AppContextGuard;
 

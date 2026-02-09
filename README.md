@@ -1,3 +1,8 @@
+# **WARNING**
+## THIS REPOSITORY HAS BEEN MIGRATED TO `https://srv1351050.hstgr.cloud:25566/Anatnaso/nasomail`
+
+
+
 #  NasoMail
 ## A Custom Mailing System
 

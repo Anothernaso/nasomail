@@ -1,6 +1,6 @@
 # **WARNING**
 ## THIS REPOSITORY HAS BEEN MIGRATED TO [https://srv1351050.hstgr.cloud:25566/Anatnaso/nasomail](https://srv1351050.hstgr.cloud:25566/Anatnaso/nasomail)
-
+## BE WARY INCASE OF SCARESCREENS: The server currently has a self-signed certificate.
 
 
 #  NasoMail
